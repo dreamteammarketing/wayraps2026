@@ -30,6 +30,15 @@ body { background: #080808; }
 ::-webkit-scrollbar { width:6px; }
 ::-webkit-scrollbar-track { background:#080808; }
 ::-webkit-scrollbar-thumb { background:#2A2520; border-radius:3px; }
+@media (max-width: 640px) {
+  .footer-inner { flex-direction: column !important; gap: 24px !important; align-items: center !important; }
+  .footer-inner > * { text-align: center; }
+  .header-bar { padding: 16px 20px !important; }
+  .header-socials { position: static !important; }
+  .song-card-inner { gap: 12px !important; }
+  .song-number { font-size: 32px !important; }
+  .song-waveform { display: none !important; }
+}
 `;
 
 function WaveformBar({ active, index, playing }) {
@@ -64,15 +73,15 @@ function SongCard({ song, isActive, isPlaying, onClick, index, progress, current
         position: "relative", overflow: "hidden",
       }}>
       {isActive && <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse at 0% 50%, ${C.gold}08 0%, transparent 50%), radial-gradient(ellipse at 100% 50%, ${C.purple}06 0%, transparent 50%)`, pointerEvents: "none" }} />}
-      <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-        <div style={{ fontFamily: "'Cinzel', serif", fontSize: 42, fontWeight: 700, color: isActive ? C.gold : "#1A1816", lineHeight: 1, minWidth: 44, transition: "color 0.3s" }}>
+      <div className="song-card-inner" style={{ display: "flex", alignItems: "center", gap: 18 }}>
+        <div className="song-number" style={{ fontFamily: "'Cinzel', serif", fontSize: 42, fontWeight: 700, color: isActive ? C.gold : "#1A1816", lineHeight: 1, minWidth: 44, transition: "color 0.3s" }}>
           {String(index + 1).padStart(2, "0")}
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: "'Cinzel', serif", fontSize: 18, fontWeight: 600, letterSpacing: "0.08em", color: isActive ? C.cream : "#665E50", transition: "color 0.3s" }}>{song.title}</div>
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, color: isActive ? C.gold : "#3A352D", letterSpacing: "0.3em", marginTop: 3, transition: "color 0.3s" }}>{song.subtitle}</div>
         </div>
-        <div style={{ display: "flex", gap: 2.5, alignItems: "center", height: 30 }}>
+        <div className="song-waveform" style={{ display: "flex", gap: 2.5, alignItems: "center", height: 30 }}>
           {Array.from({ length: 18 }).map((_, i) => <WaveformBar key={i} active={isActive} index={i} playing={isPlaying} />)}
         </div>
         <div style={{ width: 42, height: 42, borderRadius: "50%", border: `1.5px solid ${isActive ? C.gold : "#1A1816"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "border-color 0.3s" }}>
@@ -168,9 +177,9 @@ export default function App() {
       <div style={{ position: "fixed", top: 0, right: 0, width: "50%", height: "100%", background: `radial-gradient(ellipse at 80% 30%, ${C.purple}06 0%, transparent 60%)`, pointerEvents: "none" }} />
 
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "20px 48px", borderBottom: `1px solid ${C.border}`, opacity: loaded ? 1 : 0, transition: "opacity 1s ease 0.2s", position: "relative", zIndex: 10 }}>
+      <div className="header-bar" style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "20px 48px", borderBottom: `1px solid ${C.border}`, opacity: loaded ? 1 : 0, transition: "opacity 1s ease 0.2s", position: "relative", zIndex: 10 }}>
         <img src="/images/logo.png" alt="Way Raps" style={{ height: 48, width: "auto", objectFit: "contain" }} />
-        <div style={{ position: "absolute", right: 48, display: "flex", alignItems: "center", gap: 18 }}>
+        <div className="header-socials" style={{ position: "absolute", right: 48, display: "flex", alignItems: "center", gap: 18 }}>
           {SOCIALS.map(s => (
             <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" title={s.label} style={{ color: "#3A352D", transition: "color 0.3s", display: "flex" }}
               onMouseEnter={e => { e.currentTarget.style.color = C.gold; }}
@@ -236,8 +245,8 @@ export default function App() {
       </div>
 
       {/* Footer */}
-      <div style={{ borderTop: `1px solid ${C.border}`, padding: "36px 48px", opacity: loaded ? 1 : 0, transition: "opacity 1s ease 2.2s" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ borderTop: `1px solid ${C.border}`, padding: "36px 24px", opacity: loaded ? 1 : 0, transition: "opacity 1s ease 2.2s" }}>
+        <div className="footer-inner" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <img src="/images/logo.png" alt="" style={{ height: 24, width: "auto", objectFit: "contain", opacity: 0.3 }} />
             <span style={{ fontSize: 10, letterSpacing: "0.3em", color: "#2A2520" }}>WAYRAPS.COM</span>
