@@ -6,10 +6,19 @@ const C = {
   cardBg: "#0F0E0D", border: "#1A1816",
 };
 
+// Standard edition — 11 tracks on all streaming platforms
 const SONGS = [
-  { id: 1, title: "On My Own", subtitle: "BY WAY", duration: "3:49", audio: "/audio/on_my_own.mp3" },
-  { id: 2, title: "BGT", subtitle: "BY WAY", duration: "2:58", audio: "/audio/bgt.mp3" },
-  { id: 3, title: "4th Quarter", subtitle: "BY WAY", duration: "4:08", audio: "/audio/4th_quarter.mp3" },
+  { id: 1,  title: "On My Own",           subtitle: "BY WAY", duration: "3:49", audio: "/audio/on_my_own.mp3" },
+  { id: 2,  title: "Swerv",               subtitle: "BY WAY", duration: "0:00", audio: "/audio/swerv.mp3" },
+  { id: 3,  title: "Way's Birthday Song", subtitle: "BY WAY", duration: "0:00", audio: "/audio/ways_birthday_song.mp3" },
+  { id: 4,  title: "Young Niggas",        subtitle: "BY WAY", duration: "0:00", audio: "/audio/young_niggas.mp3" },
+  { id: 5,  title: "FOD",                 subtitle: "BY WAY", duration: "0:00", audio: "/audio/fod.mp3" },
+  { id: 6,  title: "Wasting My Time",     subtitle: "BY WAY", duration: "0:00", audio: "/audio/wasting_my_time.mp3" },
+  { id: 7,  title: "Dusá",               subtitle: "BY WAY", duration: "0:00", audio: "/audio/dusa.mp3" },
+  { id: 8,  title: "Cars On The Moon",    subtitle: "BY WAY", duration: "0:00", audio: "/audio/cars_on_the_moon.mp3" },
+  { id: 9,  title: "Down Cubed",          subtitle: "BY WAY", duration: "0:00", audio: "/audio/down_cubed.mp3" },
+  { id: 10, title: "Happy",               subtitle: "BY WAY", duration: "0:00", audio: "/audio/happy.mp3" },
+  { id: 11, title: "BGT",                 subtitle: "BY WAY", duration: "2:58", audio: "/audio/bgt.mp3" },
 ];
 
 const SOCIALS = [
@@ -24,6 +33,7 @@ const CSS_TEXT = `
 @keyframes pulse { from{transform:scaleY(1)} to{transform:scaleY(1.6)} }
 @keyframes grainAnim { 0%,100%{transform:translate(0,0)} 10%{transform:translate(-5%,-10%)} 50%{transform:translate(-2%,6%)} 90%{transform:translate(-1%,2%)} }
 @keyframes glowPulse { 0%,100%{opacity:0.3;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.04)} }
+@keyframes shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
 ::selection { background:#7B5EA7; color:#F0E8D8; }
 * { box-sizing:border-box; margin:0; padding:0; }
 body { background: #080808; }
@@ -38,6 +48,7 @@ body { background: #080808; }
   .song-card-inner { gap: 12px !important; }
   .song-number { font-size: 32px !important; }
   .song-waveform { display: none !important; }
+  .deluxe-banner { flex-direction: column !important; gap: 12px !important; text-align: center; }
 }
 `;
 
@@ -213,11 +224,45 @@ export default function App() {
           background: `linear-gradient(135deg, ${C.gold} 0%, ${C.goldLight} 40%, ${C.purple} 100%)`,
           WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
         }}>GEMINI</div>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.4em", color: C.gold, marginTop: 14, opacity: 0.7 }}>COMING SOON</div>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.4em", color: C.gold, marginTop: 14, opacity: 0.6 }}>2026 · 11 TRACKS</div>
+      </div>
+
+      {/* Deluxe Edition banner */}
+      <div style={{ maxWidth: 780, margin: "36px auto 0", padding: "0 24px", opacity: loaded ? 1 : 0, transition: "opacity 1s ease 1s" }}>
+        <a
+          href="/gemini-deluxe"
+          className="deluxe-banner"
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "18px 24px", textDecoration: "none",
+            background: "#0C0B09",
+            border: `1px solid ${C.gold}2A`,
+            borderRadius: 12, transition: "border-color 0.3s, background 0.3s",
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = C.gold + "55"; e.currentTarget.style.background = "#10100D"; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = C.gold + "2A"; e.currentTarget.style.background = "#0C0B09"; }}
+        >
+          <div>
+            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 13, letterSpacing: "0.25em", color: C.gold, marginBottom: 4 }}>
+              GEMINI DELUXE EDITION
+            </div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, letterSpacing: "0.2em", color: "#554E40" }}>
+              21 TRACKS · LOSSLESS FLAC · PAY WHAT YOU WANT · DOWNLOAD INCLUDED
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 8, letterSpacing: "0.2em", color: C.purple, border: `1px solid ${C.purpleDim}55`, padding: "3px 8px", borderRadius: 4 }}>
+              EXCLUSIVE
+            </span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </div>
+        </a>
       </div>
 
       {/* Divider */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, margin: "50px auto", maxWidth: 300, opacity: loaded ? 1 : 0, transition: "opacity 1s ease 1s" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, margin: "44px auto 0", maxWidth: 300, opacity: loaded ? 1 : 0, transition: "opacity 1s ease 1s" }}>
         <div style={{ flex: 1, height: 1, background: `linear-gradient(to right, transparent, ${C.gold}33)` }} />
         <div style={{ width: 4, height: 4, background: C.gold, borderRadius: "50%", opacity: 0.5 }} />
         <div style={{ width: 6, height: 6, border: `1px solid ${C.purple}44`, borderRadius: "50%", transform: "rotate(45deg)" }} />
@@ -227,25 +272,43 @@ export default function App() {
 
       {/* Songs */}
       <div style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px 100px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 32, opacity: loaded ? 1 : 0, transition: "opacity 1s ease 1.1s" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16, margin: "30px 0 28px", opacity: loaded ? 1 : 0, transition: "opacity 1s ease 1.1s" }}>
           <div style={{ height: 1, flex: 1, background: `linear-gradient(to right, transparent, ${C.border})` }} />
           <span style={{ fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: "0.4em", color: "#3A352D", fontWeight: 600 }}>LISTEN</span>
           <div style={{ height: 1, flex: 1, background: `linear-gradient(to left, transparent, ${C.border})` }} />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {SONGS.map((song, i) => (
-            <div key={song.id} style={{ opacity: loaded ? 1 : 0, transform: loaded ? "translateY(0)" : "translateY(16px)", transition: `all 0.8s cubic-bezier(.22,1,.36,1) ${1.3 + i * 0.12}s` }}>
+            <div key={song.id} style={{ opacity: loaded ? 1 : 0, transform: loaded ? "translateY(0)" : "translateY(16px)", transition: `all 0.8s cubic-bezier(.22,1,.36,1) ${1.3 + i * 0.08}s` }}>
               <SongCard song={song} index={i} isActive={activeSong === song.id} isPlaying={activeSong === song.id && isPlaying} onClick={() => handleSongClick(song.id)} progress={activeSong === song.id ? progress : 0} currentTime={activeSong === song.id ? currentTime : 0} duration={activeSong === song.id ? duration : 0} />
             </div>
           ))}
         </div>
-        <div style={{ textAlign: "center", marginTop: 44, opacity: loaded ? 1 : 0, transition: "opacity 1s ease 2s" }}>
-          <div style={{ display: "inline-block", padding: "12px 24px", border: `1px solid ${C.border}`, borderRadius: 100, fontSize: 9, letterSpacing: "0.3em", color: "#3A352D" }}>FULL TRACKS ON RELEASE</div>
+
+        {/* Streaming link */}
+        <div style={{ textAlign: "center", marginTop: 40, opacity: loaded ? 1 : 0, transition: "opacity 1s ease 2.2s" }}>
+          <a
+            href="https://artists.landr.com/991043894223"
+            target="_blank" rel="noopener noreferrer"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              padding: "12px 24px", border: `1px solid ${C.border}`, borderRadius: 100,
+              fontSize: 9, letterSpacing: "0.3em", color: "#3A352D", textDecoration: "none",
+              transition: "border-color 0.3s, color 0.3s",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = C.gold + "44"; e.currentTarget.style.color = C.gold; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = "#3A352D"; }}
+          >
+            STREAM ON ALL PLATFORMS
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
         </div>
       </div>
 
       {/* Footer */}
-      <div style={{ borderTop: `1px solid ${C.border}`, padding: "36px 24px", opacity: loaded ? 1 : 0, transition: "opacity 1s ease 2.2s" }}>
+      <div style={{ borderTop: `1px solid ${C.border}`, padding: "36px 24px", opacity: loaded ? 1 : 0, transition: "opacity 1s ease 2.4s" }}>
         <div className="footer-inner" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <img src="/images/logo.png" alt="" style={{ height: 24, width: "auto", objectFit: "contain", opacity: 0.3 }} />
