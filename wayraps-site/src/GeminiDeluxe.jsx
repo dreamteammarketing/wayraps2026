@@ -244,42 +244,22 @@ function TrackCard({ song, globalIndex, isActive, isPlaying, unlocked, onClick, 
 // To enable "customer sets own price", edit the hosted button in your PayPal
 // Business account → Hosted Buttons → Edit → Pricing: Customer enters amount.
 
+// PayPal SDK loaded synchronously in index.html <head> before React mounts.
+// window.paypal.HostedButtons is guaranteed available when useEffect runs.
 function PayPalButtonInner({ onUnlock }) {
   const rendered = useRef(false);
 
   useEffect(() => {
-    // Guard: only render once — re-calling HostedButtons.render() on an
-    // already-occupied container throws a silent error in PayPal's SDK.
     if (rendered.current) return;
-
-    const renderBtn = () => {
-      if (rendered.current) return;
-      rendered.current = true;
-      window.paypal
-        .HostedButtons({ hostedButtonId: PAYPAL_HOSTED_BTN_ID, onApprove: onUnlock })
-        .render("#pp-hosted-btn");
-    };
-
-    if (window.paypal?.HostedButtons) {
-      renderBtn();
+    if (!window.paypal?.HostedButtons) {
+      console.error("PayPal SDK not found — check index.html script tag");
       return;
     }
-
-    // Don't inject the script twice (StrictMode / hot-reload safety)
-    if (!document.getElementById("paypal-sdk-script")) {
-      const s = document.createElement("script");
-      s.id    = "paypal-sdk-script";
-      s.src   = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&components=hosted-buttons&disable-funding=venmo&currency=USD`;
-      s.async = true;
-      s.onload  = renderBtn;
-      s.onerror = () => console.error("PayPal SDK failed to load");
-      document.head.appendChild(s);
-    } else {
-      // Script already injected — attach listener in case it's still loading
-      document.getElementById("paypal-sdk-script").addEventListener("load", renderBtn);
-    }
-    // No cleanup: PayPal SDK should stay alive for the session
-  }, []); // ← empty deps: run once on mount, period.
+    rendered.current = true;
+    window.paypal
+      .HostedButtons({ hostedButtonId: PAYPAL_HOSTED_BTN_ID, onApprove: onUnlock })
+      .render("#pp-hosted-btn");
+  }, []);
 
   return (
     <div style={{ minHeight: 48 }}>
