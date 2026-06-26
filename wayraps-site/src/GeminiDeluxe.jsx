@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-// PayPal loaded via vanilla script tag — uses Hosted Buttons (requires components=hosted-buttons)
+import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 
 // ─── Brand constants ────────────────────────────────────────────────────────
 const C = {
@@ -8,9 +8,8 @@ const C = {
   cardBg: "#0F0E0D", border: "#1A1816",
 };
 
-// ─── PayPal config (Ways World LLC business account) ────────────────────────
-const PAYPAL_CLIENT_ID     = "BAAAXL--sbpkM0tanrXL4i13v2uYRNniRujiCgeQ7iGHVVpW0CpKB0SrfkomL273XSJbkhT3NUgbW1R1h0";
-const PAYPAL_HOSTED_BTN_ID = "GZK78E2Y94KZA";
+// ─── PayPal config (Ways World LLC — REST API app "Way Raps Website") ────────
+const PAYPAL_CLIENT_ID = "AXigwdcaFDkksJOs9snSdrgMsojZ-yhQsEs-MJwHumgXyj0nHvaN065K4q0nXwnn6cr61fahc1uSh9Wg";
 
 // ─── TRACK LIST ─────────────────────────────────────────────────────────────
 // Audio hosted on GitHub Releases — lossless FLAC, streamed directly.
@@ -244,26 +243,40 @@ function TrackCard({ song, globalIndex, isActive, isPlaying, unlocked, onClick, 
 // To enable "customer sets own price", edit the hosted button in your PayPal
 // Business account → Hosted Buttons → Edit → Pricing: Customer enters amount.
 
-// PayPal SDK loaded synchronously in index.html <head> before React mounts.
-// window.paypal.HostedButtons is guaranteed available when useEffect runs.
-function PayPalButtonInner({ onUnlock }) {
-  const rendered = useRef(false);
+// Standard PayPalButtons — requires REST API client ID (not Hosted Button ID).
+function PayPalButtonInner({ amount, onUnlock }) {
+  const [{ isPending, isRejected }] = usePayPalScriptReducer();
 
-  useEffect(() => {
-    if (rendered.current) return;
-    if (!window.paypal?.HostedButtons) {
-      console.error("PayPal SDK not found — check index.html script tag");
-      return;
-    }
-    rendered.current = true;
-    window.paypal
-      .HostedButtons({ hostedButtonId: PAYPAL_HOSTED_BTN_ID, onApprove: onUnlock })
-      .render("#pp-hosted-btn");
-  }, []);
+  if (isRejected) return (
+    <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 9, color: "#554E40", padding: "10px 0" }}>
+      PayPal failed to load. Check your connection and refresh.
+    </div>
+  );
 
   return (
     <div style={{ minHeight: 48 }}>
-      <div id="pp-hosted-btn" />
+      {isPending && (
+        <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 9, letterSpacing: "0.2em",
+          color: "#3A352D", textAlign: "center", padding: "14px 0", textTransform: "uppercase" }}>
+          Loading PayPal…
+        </div>
+      )}
+      <PayPalButtons
+        forceReRender={[amount]}
+        style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay", height: 48 }}
+        createOrder={(_data, actions) =>
+          actions.order.create({
+            purchase_units: [{
+              amount: { value: String(Math.max(parseFloat(amount) || 1, 1).toFixed(2)), currency_code: "USD" },
+              description: "Gemini Deluxe Edition – Way Raps",
+            }],
+          })
+        }
+        onApprove={(_data, actions) =>
+          actions.order.capture().then(() => onUnlock())
+        }
+        onError={(err) => console.error("PayPal error:", err)}
+      />
     </div>
   );
 }
@@ -368,7 +381,7 @@ function PaywallSection({ amount, setAmount, onUnlock }) {
         </button>
       ) : (
         /* Real PayPal checkout — auto-unlocks on payment capture */
-        <PayPalButtonInner onUnlock={onUnlock} />
+        <PayPalButtonInner amount={amount} onUnlock={onUnlock} />
       )}
 
       <div style={{
@@ -822,7 +835,14 @@ function GeminiDeluxe() {
 }
 
 // ─── Root export — wraps in PayPal provider ───────────────────────────────────
-// PayPal SDK is loaded inline via useEffect in PayPalButtonInner
 export default function GeminiDeluxeRoot() {
-  return <GeminiDeluxe />;
+  return (
+    <PayPalScriptProvider options={{
+      "client-id": PAYPAL_CLIENT_ID,
+      currency: "USD",
+      intent: "capture",
+    }}>
+      <GeminiDeluxe />
+    </PayPalScriptProvider>
+  );
 }
