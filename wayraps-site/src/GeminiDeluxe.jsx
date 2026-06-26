@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
+// PayPal loaded via vanilla script tag — uses Hosted Buttons (requires components=hosted-buttons)
 
 // ─── Brand constants ────────────────────────────────────────────────────────
 const C = {
@@ -9,7 +9,8 @@ const C = {
 };
 
 // ─── PayPal config (Ways World LLC business account) ────────────────────────
-const PAYPAL_CLIENT_ID = "BAAAXL--sbpkM0tanrXL4i13v2uYRNniRujiCgeQ7iGHVVpW0CpKB0SrfkomL273XSJbkhT3NUgbW1R1h0";
+const PAYPAL_CLIENT_ID     = "BAAAXL--sbpkM0tanrXL4i13v2uYRNniRujiCgeQ7iGHVVpW0CpKB0SrfkomL273XSJbkhT3NUgbW1R1h0";
+const PAYPAL_HOSTED_BTN_ID = "GZK78E2Y94KZA";
 
 // ─── TRACK LIST ─────────────────────────────────────────────────────────────
 // Audio hosted on GitHub Releases — lossless FLAC, streamed directly.
@@ -239,44 +240,35 @@ function TrackCard({ song, globalIndex, isActive, isPlaying, unlocked, onClick, 
 }
 
 // ─── PayPal button inner (needs PayPalScriptProvider above it) ───────────────
+// Uses Hosted Buttons — client ID is scoped to this integration type.
+// To enable "customer sets own price", edit the hosted button in your PayPal
+// Business account → Hosted Buttons → Edit → Pricing: Customer enters amount.
 
-function PayPalButtonInner({ amount, onUnlock }) {
-  const [{ isPending, isRejected }] = usePayPalScriptReducer();
+function PayPalButtonInner({ onUnlock }) {
+  const containerRef = useRef(null);
 
-  if (isRejected) {
-    return (
-      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, color: "#554E40", padding: "10px 0" }}>
-        PayPal failed to load. Check your connection and refresh.
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!containerRef.current) return;
+    // If SDK already loaded (e.g. StrictMode double-mount), render directly
+    if (window.paypal && window.paypal.HostedButtons) {
+      window.paypal.HostedButtons({ hostedButtonId: PAYPAL_HOSTED_BTN_ID, onApprove: onUnlock })
+        .render(containerRef.current);
+      return;
+    }
+    const s = document.createElement("script");
+    s.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&components=hosted-buttons&disable-funding=venmo&currency=USD`;
+    s.onload = () => {
+      window.paypal.HostedButtons({ hostedButtonId: PAYPAL_HOSTED_BTN_ID, onApprove: onUnlock })
+        .render(containerRef.current);
+    };
+    s.onerror = () => console.error("PayPal SDK failed to load");
+    document.head.appendChild(s);
+    return () => { try { document.head.removeChild(s); } catch (_) {} };
+  }, [onUnlock]);
 
   return (
     <div style={{ minHeight: 48 }}>
-      {isPending && (
-        <div style={{
-          fontFamily: "'Space Mono', monospace", fontSize: 9, letterSpacing: "0.2em",
-          color: "#3A352D", textAlign: "center", padding: "14px 0",
-        }}>
-          LOADING PAYPAL...
-        </div>
-      )}
-      <PayPalButtons
-        forceReRender={[amount]}
-        style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay", height: 48 }}
-        createOrder={(_data, actions) =>
-          actions.order.create({
-            purchase_units: [{
-              amount: { value: String(parseFloat(amount).toFixed(2)), currency_code: "USD" },
-              description: "Gemini Deluxe Album – Way Raps",
-            }],
-          })
-        }
-        onApprove={(_data, actions) =>
-          actions.order.capture().then(() => onUnlock())
-        }
-        onError={(err) => console.error("PayPal error:", err)}
-      />
+      <div ref={containerRef} />
     </div>
   );
 }
@@ -381,7 +373,7 @@ function PaywallSection({ amount, setAmount, onUnlock }) {
         </button>
       ) : (
         /* Real PayPal checkout — auto-unlocks on payment capture */
-        <PayPalButtonInner amount={amount} onUnlock={onUnlock} />
+        <PayPalButtonInner onUnlock={onUnlock} />
       )}
 
       <div style={{
@@ -835,15 +827,7 @@ function GeminiDeluxe() {
 }
 
 // ─── Root export — wraps in PayPal provider ───────────────────────────────────
+// PayPal SDK is loaded inline via useEffect in PayPalButtonInner
 export default function GeminiDeluxeRoot() {
-  return (
-    <PayPalScriptProvider options={{
-      "client-id": PAYPAL_CLIENT_ID,
-      currency: "USD",
-      "enable-funding": "venmo",
-      "disable-funding": "paylater",
-    }}>
-      <GeminiDeluxe />
-    </PayPalScriptProvider>
-  );
+  return <GeminiDeluxe />;
 }
